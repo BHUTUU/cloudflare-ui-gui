@@ -71,7 +71,7 @@ def getLink():
                     if not url:
                         pass
                     else:
-                        print(url[0])
+                        # print(url[0])
                         link = url[0]
                 cloudlog.close()
         else:
@@ -88,7 +88,8 @@ iconPhoto = PhotoImage(file='.cloudIcon.png')
 winRoot.iconphoto(False, iconPhoto)
 winRoot.title('cloudflare-ui')
 # Box size
-winRoot.geometry('600x400')
+winRoot.geometry('800x400')
+winRoot.minsize(800, 400)
 #<<<----Frames----->>>
 mainFrame = Frame(winRoot, bg='pink').pack(fill='both')
 #introFrame
@@ -128,10 +129,65 @@ portEntry = Entry(portFrame, textvariable=localPortInput, font=('Consolas', '12'
 portFrame.pack()
 fieldFrame.pack(anchor='nw', padx=[20, 0], pady=[10,0])
 #link Frame
-linkFrame = Frame(mainFrame)
-linkHeadLabel = Label(linkFrame, text="Forwarded on URL: ").pack(side=LEFT)
-linkLable = Label(linkFrame, textvariable=forwardedUrl, font=('Arial', '10', 'bold')).pack(side=RIGHT)
-copyButton = Button(linkFrame, text="COPY", command=copyLink).pack
-linkFrame.pack(side=LEFT, padx=[20])
+def copyLink():
+    winRoot.clipboard_clear()
+    winRoot.clipboard_append(forwardedUrl.get())
+def getLink():
+    link = ''
+    while not link:
+        if os.path.exists(cloudflare_log):
+            with open(cloudflare_log) as cloudlog:
+                for line in cloudlog:
+                    url = re.findall('https://[-0-9a-z]*\.trycloudflare.com', line)
+                    if not url:
+                        pass
+                    else:
+                        # print(url[0])
+                        link = url[0]
+                cloudlog.close()
+        else:
+            continue
+    forwardedUrl.set(link)
+def killCloudflare():
+    try:
+        pidOfCloudflared = localCmd("tasklist | grep cloudflared |awk '{print $2}'")
+        if not pidOfCloudflared[0][0]:
+            pass
+        else:
+            pidList = pidOfCloudflared[0]
+            print(pidOfCloudflared[0])
+            for i in pidList:
+                if not i:
+                    continue
+                os.kill(int(i), 2)
+    except SyntaxError:
+        pass
+def onClickForward():
+    forwardedUrl.set("Please wait....!")
+    threading.Thread(target=cloudflare('127.0.0.1', 8080)).start()
+    threading.Thread(target=getLink).start()
+
+def localCmd(command):
+    proc = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
+    (out, err) = proc.communicate()
+    return out.decode().split('\n'), err
+def onClickCancel():
+    killCloudflare()
+    winRoot.destroy()
+    try:
+        if os.path.exists(cloudflare_log):
+            os.remove(cloudflare_log)
+    except:
+        pass
+    SystemExit(0)
+linkFrame = Frame(mainFrame).pack(padx=[20,0])
+linkHeadLabel = Label(linkFrame, text="<---Forwarded on URL--->", font=('Roman', 15, 'bold')).pack()
+linkLable = Label(linkFrame,bg='skyblue',height=2, highlightbackground='black', highlightthickness=3, textvariable=forwardedUrl, font=('Arial', '10', 'bold')).pack(fill=X, padx=30)
+copyButton = Button(linkFrame, text="copy", width=10,highlightbackground='black', highlightthickness=2,state=NORMAL, command=copyLink).pack(pady=10)
+
+controlFrame = Frame(winRoot)
+forwardButton = Button(controlFrame, text='Forward', state=NORMAL, command=onClickForward).pack(side=LEFT, padx=[0,20])
+cancelButton = Button(controlFrame, text='Cancel',state=NORMAL, command=onClickCancel).pack(side=RIGHT, padx=[90,0])
+controlFrame.pack(side=BOTTOM, anchor='s', pady=[0,10])
 cleanCache()
 winRoot.mainloop()
