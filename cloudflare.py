@@ -3,7 +3,7 @@
 #Date: 19-02-2023 (initiation)
 #Licence: --(to be implemented)
 #<<<------Import section------>>>
-import os, re, time, subprocess, platform, base64,sys
+import os, re, time, subprocess, platform, base64
 from tkinter import *
 from tkinter import messagebox
 import threading
@@ -113,9 +113,10 @@ introFrame.pack(side=TOP, fill=X, padx=20, pady=[20,0])
 programHead = Label(mainFrame,text="<<<---Connect your localhost to the Internet--->>>", font='chiller 20 bold').pack()
 #fields:
 localHostInput = StringVar()
-localPortInput = IntVar()
+localPortInput = StringVar()
+count = IntVar()
 localHostInput.set("127.0.0.1")
-localPortInput.set(8080)
+localPortInput.set("8080")
 forwardedUrl = StringVar()
 forwardedUrl.set("Link will be here :)")
 fieldFrame = Frame(mainFrame)
@@ -143,29 +144,58 @@ def getLink():
                         pass
                     else:
                         # print(url[0])
-                        link = url[0]
+                        link = url[len(url)-1]
+                        print(url)
                 cloudlog.close()
         else:
             continue
     forwardedUrl.set(link)
 def killCloudflare():
-    try:
-        pidOfCloudflared = localCmd("tasklist | grep cloudflared |awk '{print $2}'")
-        if not pidOfCloudflared[0][0]:
+    if realName == 'windows':
+        try:
+            pidOfCloudflared = localCmd("tasklist | grep cloudflared |awk '{print $2}'")
+            if not pidOfCloudflared[0][0]:
+                pass
+            else:
+                pidList = pidOfCloudflared[0]
+                print(pidOfCloudflared[0])
+                for i in pidList:
+                    if not i:
+                        continue
+                    os.kill(int(i), 2)
+        except SyntaxError:
             pass
-        else:
-            pidList = pidOfCloudflared[0]
-            print(pidOfCloudflared[0])
-            for i in pidList:
-                if not i:
-                    continue
-                os.kill(int(i), 2)
-    except SyntaxError:
+    elif realName == 'GNU/Linux':
+        try:
+            os.system("killall -2 cloudflared")
+        except SyntaxError:
+            pass
+def delCloudLogFile():
+    try:
+        if os.path.exists(cloudflare_log):
+            os.remove(cloudflare_log)
+    except:
         pass
+def doForward():
+    if not localHostInput.get() or not localPortInput.get():
+        messagebox.showerror(title='Error',message="Both fields are mandatory!")
+    else:
+        killCloudflare()
+        try:
+            if os.path.exists(cloudflare_log):
+                os.remove(cloudflare_log)
+        except:
+            pass
+        winRoot.update_idletasks()
+        forwardedUrl.set("Please wait....!")
+        threading.Thread(target=cloudflare('127.0.0.1', 8080)).start()
+        threading.Thread(target=getLink).start()
 def onClickForward():
-    forwardedUrl.set("Please wait....!")
-    threading.Thread(target=cloudflare('127.0.0.1', 8080)).start()
-    threading.Thread(target=getLink).start()
+    count.set(count.get()+1)
+    if count.get() == 1:
+        doForward()
+    else:
+        messagebox.showinfo(title='Error!', message="Restart cloudflare to forward again!", icon='error')
 
 def localCmd(command):
     proc = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
@@ -174,17 +204,12 @@ def localCmd(command):
 def onClickCancel():
     killCloudflare()
     winRoot.destroy()
-    try:
-        if os.path.exists(cloudflare_log):
-            os.remove(cloudflare_log)
-    except:
-        pass
+    delCloudLogFile()
     SystemExit(0)
 linkFrame = Frame(mainFrame).pack(padx=[20,0])
 linkHeadLabel = Label(linkFrame, text="<---Forwarded on URL--->", font=('Roman', 15, 'bold')).pack()
 linkLable = Label(linkFrame,bg='skyblue',height=2, highlightbackground='black', highlightthickness=3, textvariable=forwardedUrl, font=('Arial', '10', 'bold')).pack(fill=X, padx=30)
 copyButton = Button(linkFrame, text="copy", width=10,highlightbackground='black', highlightthickness=2,state=NORMAL, command=copyLink).pack(pady=10)
-
 controlFrame = Frame(winRoot)
 forwardButton = Button(controlFrame, text='Forward', state=NORMAL, command=onClickForward).pack(side=LEFT, padx=[0,20])
 cancelButton = Button(controlFrame, text='Cancel',state=NORMAL, command=onClickCancel).pack(side=RIGHT, padx=[90,0])
