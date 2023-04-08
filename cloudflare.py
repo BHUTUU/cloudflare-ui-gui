@@ -60,7 +60,7 @@ def cloudflare(lhost, lport):
         cloudflare_command = 'cloudflared -url '+str(lhost)+':'+str(lport)+' --logfile '+cloudflare_log+' >'+os.devnull+' 2>&1'
         # subprocess.Popen(cloudflare_command)
         with open(os.devnull, 'wb') as log:
-            running = subprocess.Popen(cloudflare_command, stdout=log, stderr=log)
+            running = subprocess.Popen(cloudflare_command, stdout=log, stderr=log, shell=True)
 def getLink():
     link = ''
     while not link:
@@ -145,7 +145,6 @@ def getLink():
                     else:
                         # print(url[0])
                         link = url[len(url)-1]
-                        print(url)
                 cloudlog.close()
         else:
             continue
@@ -158,7 +157,6 @@ def killCloudflare():
                 pass
             else:
                 pidList = pidOfCloudflared[0]
-                print(pidOfCloudflared[0])
                 for i in pidList:
                     if not i:
                         continue
