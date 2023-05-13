@@ -27,7 +27,7 @@ if OS.upper() == 'NT':
     programDir = 'C:/Program Files'
     gitDir = programDir+'/Git/usr/bin'
     cloudflare_log = os.path.expanduser('~')+'/AppData/Local/Temp/cloudflare.log'
-elif OS.upper() == 'GNU/LINUX':
+elif OS.upper() == 'GNU/LINUX' or OS.upper() == 'POSIX':
     architecture = platform.machine()
     realName = "GNU/Linux"
     downloadFolder = os.path.expanduser('~')+'/Downloads'
