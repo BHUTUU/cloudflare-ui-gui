@@ -3,7 +3,7 @@
 #Date: 19-02-2023 (initiation)
 #Licence: --(to be implemented)
 #<<<------Import section------>>>
-import os, re, time, subprocess, platform, base64
+import os, re, subprocess, platform, base64
 from tkinter import *
 from tkinter import messagebox
 import threading
@@ -26,6 +26,7 @@ if OS.upper() == 'NT':
     downloadFolder = os.path.expanduser('~')+'/Downloads'
     programDir = 'C:/Program Files'
     gitDir = programDir+'/Git/usr/bin'
+    os.environ['PATH'] += ";"+ gitDir
     cloudflare_log = os.path.expanduser('~')+'/AppData/Local/Temp/cloudflare.log'
 elif OS.upper() == 'GNU/LINUX' or OS.upper() == 'POSIX':
     architecture = platform.machine()
@@ -33,6 +34,7 @@ elif OS.upper() == 'GNU/LINUX' or OS.upper() == 'POSIX':
     downloadFolder = os.path.expanduser('~')+'/Downloads'
     programDir = '/usr/bin'
     gitDir = programDir
+    os.environ['PATH'] += ":"+gitDir
     cloudflare_log = '/usr/tmp/cloudflare.log'
 else:
     with open('cloudflare.log', 'w') as file:
@@ -83,6 +85,9 @@ def getLink():
 
 #<<<<-------Graphical design------>>>
 winRoot = Tk()
+if not os.path.exists(gitDir):
+    messagebox.showerror("Error", "please install the cloudflare setup first from https://github.com/BHUTUU/cloudflare-installer")
+    exit(0)
 getCache()
 iconPhoto = PhotoImage(file='.cloudIcon.png')
 winRoot.iconphoto(False, iconPhoto)
