@@ -57,7 +57,8 @@ def getCache():
 #<<<--------Function-------->>>
 def cloudflare(lhost, lport):
     if realName == 'windows':
-        cloudflare_command = 'cloudflared -url '+str(lhost)+':'+str(lport)+' --logfile '+cloudflare_log+' >'+os.devnull+' 2>&1'
+        os.chdir(gitDir)
+        cloudflare_command = './cloudflared -url '+str(lhost)+':'+str(lport)+' --logfile '+cloudflare_log+' >'+os.devnull+' 2>&1'
         # subprocess.Popen(cloudflare_command)
         with open(os.devnull, 'wb') as log:
             running = subprocess.Popen(cloudflare_command, stdout=log, stderr=log, shell=True)
