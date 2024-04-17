@@ -69,7 +69,7 @@ def getLink():
         if os.path.exists(cloudflare_log):
             with open(cloudflare_log) as cloudlog:
                 for line in cloudlog:
-                    url = re.findall('https://[-0-9a-z]*\.trycloudflare.com', line)
+                    url = re.findall(r'https://[-0-9a-z]*\.trycloudflare.com', line)
                     if not url:
                         pass
                     else:
@@ -144,7 +144,7 @@ def getLink():
         if os.path.exists(cloudflare_log):
             with open(cloudflare_log) as cloudlog:
                 for line in cloudlog:
-                    url = re.findall('https://[-0-9a-z]*\.trycloudflare.com', line)
+                    url = re.findall(r'https://[-0-9a-z]*\.trycloudflare.com', line)
                     if not url:
                         pass
                     else:
